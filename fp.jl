@@ -1,4 +1,5 @@
 # include("C:\\Users\\mgb\\Downloads\\projeto.jl")
+# include("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Comunicações Móveis/chAMPS/fp.jl")
 #=Pkg.clone("https://github.com/timotrob/PathLoss.jl.git")
 Pkg.add("RDatasets")
 Pkg.add("Distributions")
@@ -13,9 +14,9 @@ using Gadfly
 using PathLoss=#
 
 # Funcao para calcular RMSE
-#=function rmse(gt,pred)
+function rmse(gt,pred)
     return sqrt(mean((gt - pred).^2))
-end;=#
+end;
 
 function cal_error(m, db)
     tabela = @byrow! db begin
@@ -49,9 +50,9 @@ function cal_error(m, db)
     return tabela
 end;
 
-db_train = readtable("C:\\Users\\mgb\\Desktop\\train.csv", separator = ',') #2045 lines
-db_test = readtable("C:\\Users\\mgb\\Desktop\\test.csv", separator = ',') #513 lines
-db_erbs = readtable("C:\\Users\\mgb\\Desktop\\erbs.csv", separator = ',') 
+db_train = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Comunicações Móveis/chAMPS/train.csv", separator = ',') #2045 lines
+db_test = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Comunicações Móveis/chAMPS/test.csv", separator = ',') #513 lines
+db_erbs = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Comunicações Móveis/chAMPS/erbs.csv", separator = ',') 
 
 # Calculando o pathloss medido
 db_train[:PLBTS1] = 0.0
@@ -94,8 +95,107 @@ end
 
 
 #### Free Space Model
-m = FreeSpaceModel() # For ERP
-m.freq = 1800 #MHz
+m = FreeSpaceModel() 	# For ERP
+m.freq = 1800 			# MHz
 
 fs = cal_error(m, db_train)
 head(fs)
+
+#=
+#### Okumura Hata Model
+m = OkumuraHataModel()
+m.freq = 800					# MHz
+m.txH = 90						# Height of the cell site (in meters)
+m.rxH = 1.2                   	# Height of Mobile Station (in meters)
+m.areaKind = AreaKind.Urban  	# Area Type (Urban SubUrban Open)
+m.cityKind = CityKind.Medium 	# City type (Small Medium or Large)
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### COST-231 Hata Extension Model
+m = Cost231HataModel()
+m.freq = 1800    			# MHz
+m.txH = 90      			# Height of the cell site
+m.rxH = 1.5     			# Height of Mobile Station
+m.areaKind = AreaKind.Urban # City type (Small Medium or Large)
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### COST-231 Waldrosch-Ikegami Model
+m = Cost231Model()
+m.freq = 800    				# MHz
+m.txH = 90      				# Height of the cell site
+m.rxH = 1.5     				# Height of Mobile Station
+m.ws = 20       				# Average width of the street in meters
+m.bs = 7        				# Average setback of buildings in meters
+m.hr = 8        				# Mean height of houses in meters
+m.cityKind = CityKind.Medium 	# City type (Small Medium or Large)
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### ECC-33
+m = Ecc33Model()
+m.freq = 950   # MHz
+m.txH = 90     # Height of the cell site (
+m.rxH = 1.2    # Height of MS(Mobile Station)
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### Ericsson 999
+m = EricssonModel()
+m.freq = 800    			# MHz
+m.txH = 35      			# Height of the cell site (15 and 40 m.)
+m.rxH = 2       			# Height of Mobile Station
+m.cityKind = CityKind.Medium
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### SUI (STANFORD UNIVERSITY INTERIM)
+m = SuiModel()
+m.freq = 2100    				# MHz
+m.txH = 35      				# Height of the cell site (15 and 40 m.)
+m.rxH = 2       				# Height of MS(Mobile Station)
+m.shadowFading = 9.0 			# Shadow Fading(8.2 dB and 10.6)
+m.terrainKind = TerrainKind.B
+# TerrainKind
+# Category A: hilly terrain with moderate-to-heavy tree densities, which results in the maximum path loss.
+# Category B: hilly environment but rare vegetation, or high vegetation but flat terrain. Intermediate path loss condition is typical of this category.
+# Category C: mostly flat terrain with light tree densities. It corresponds to minimum path loss conditions
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### Lee Model]
+m = LeeModel()
+m.freq = 950    				# MHz
+m.txH = 90      				# Height of the cell site
+m.rxH = 1.5     				# Height of Mobile Station
+m.leeArea = LeeArea.NewYorkCity # (determined empirically)
+# Area parameters are tuples as follow:
+# FreeSpace = (2.0, 45.0)
+# OpenArea =  (4.35, 49.0)
+# SubUrban= (3.84, 61.7)
+# Philadelphia=(3.68, 70.0)
+# Newark=(4.31, 64.0)
+# Tokyo=(3.05, 84.0)
+# NewYorkCity =(4.8, 77.0) # n=4.8 Po=77.0
+
+fs = cal_error(m, db_train)
+head(fs)
+
+#### Flat Earth Model
+m = FlatEarthModel()
+m.freq = 950    # MHz
+m.txH = 90      # Height of the cell site
+m.rxH = 1.5     # Height of Mobile Station
+
+fs = cal_error(m, db_train)
+head(fs) =#
+
+
+
