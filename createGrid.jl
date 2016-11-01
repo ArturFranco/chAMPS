@@ -1,5 +1,6 @@
 using DataFrames
-
+using DataFramesMeta
+using PathLoss
 #grid dimentions =  Longitude  -34.91  a  -34.887  | Latitude de  -8.080 a -8.065;
 
 #GRID Dimentions
@@ -23,14 +24,13 @@ rh_long = rH*(1/LONG); #coords
 #create GRID
 grid = DataFrame(i = [], j = [], long = [], lat = []);
 
+#calculate Latitude and longitude lengths
 long_length = abs(end_long - init_long);
 lat_length = abs(end_lat - init_lat);
 
 
 lat_meters = lat_length * LAT;
 long_meters = long_length * LONG;
-#long_length = 200;
-#lat_length = 200;
 
 
 num_i = ceil(Int64, long_length / rh_long);
@@ -39,9 +39,50 @@ num_j = ceil(Int64, lat_length / rh_lat);
 
 for c_i = 0:num_i
     for c_j = 0:num_j
-        a_long = (c_i*rh_long) + (rh_long/2);
-        a_lat = (c_j*rh_lat) + (rh_lat/2);
+        a_long = init_long + (c_i*rh_long) + (rh_long/2);
+        a_lat = init_lat + (c_j*rh_lat) + (rh_lat/2);
         push!(grid, [c_i + 1, c_j + 1, a_long, a_lat]);
     end
 end  
 
+
+
+################################################################
+
+db_erbs = readtable("erbs.csv", separator = ',');
+
+fs = FreeSpaceModel();
+fs.freq = 1800;
+
+lat1 = db_erbs[1,:lat];
+long1 = db_erbs[1,:lon];
+
+lat2 = db_erbs[2,:lat];
+long2 = db_erbs[2,:lon];
+
+lat3 = db_erbs[3,:lat];
+long3 = db_erbs[3,:lon];
+
+lat4 = db_erbs[4,:lat];
+long4 = db_erbs[4,:lon];
+
+lat5 = db_erbs[5,:lat];
+long5 = db_erbs[5,:lon];
+
+lat6 = db_erbs[6,:lat];
+long6 = db_erbs[6,:lon];
+
+grid_2 = @byrow! grid begin
+    @newcol PL_1::Array{Float64}
+    @newcol PL_2::Array{Float64}
+    @newcol PL_3::Array{Float64}
+    @newcol PL_4::Array{Float64}
+    @newcol PL_5::Array{Float64}
+    @newcol PL_6::Array{Float64}
+    :PL_1 = pathloss(fs, distanceInKm(:lat,:long, lat1, long1))
+    :PL_2 = pathloss(fs, distanceInKm(:lat,:long, lat2, long2))
+    :PL_3 = pathloss(fs, distanceInKm(:lat,:long, lat3, long3))
+    :PL_4 = pathloss(fs, distanceInKm(:lat,:long, lat4, long4))
+    :PL_5 = pathloss(fs, distanceInKm(:lat,:long, lat5, long5))
+    :PL_6 = pathloss(fs, distanceInKm(:lat,:long, lat6, long6))
+end;
