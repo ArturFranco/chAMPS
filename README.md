@@ -1,10 +1,10 @@
 Atividades/passos
 
 - [DONE] Descobrir frequencia exata das ERBs [1800 MHz]
-- Calcular pathloss de cada ponto medido para todas as ERBs
-- Decidir quais modelos de propagação testar
-- Calcular pathloss em cada modelo escolhido para todas as medições para todas as ERBs
-- Calcular erro medio de cada modelo
+- [DONE] Calcular pathloss de cada ponto medido para todas as ERBs
+- [DONE] Decidir quais modelos de propagação testar
+- [DONE] Calcular pathloss em cada modelo escolhido para todas as medições para todas as ERBs
+- [DONE] Calcular erro medio de cada modelo
 - Escolher modelo
 - [DONE] Criar GRID com pathloss calculado no modelo freespace [createGrid.jl]
 - Aplicar modelo escolhido no GRID
