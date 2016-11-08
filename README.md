@@ -5,7 +5,7 @@ Atividades/passos
 - [DONE] Decidir quais modelos de propagação testar
 - [DONE] Calcular pathloss em cada modelo escolhido para todas as medições para todas as ERBs
 - [DONE] Calcular erro medio de cada modelo
-- [DONE] Escolher modelo
+- [DONE] Escolher modelo [Okumura Hata]
 - [DONE] Criar GRID com pathloss calculado no modelo freespace [createGrid.jl]
 - [DONE] Aplicar modelo escolhido no GRID
 - Definir técina para refinar GRID atraves das medições de treino
