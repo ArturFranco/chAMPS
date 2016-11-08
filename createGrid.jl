@@ -49,10 +49,16 @@ end
 
 ################################################################
 
-db_erbs = readtable("erbs.csv", separator = ',');
+db_erbs = readtable("C:/Users/mgb/Desktop/erbs.csv", separator = ',');
 
-fs = FreeSpaceModel();
-fs.freq = 1800;
+#### Okumura Hata Model ####
+fs = OkumuraHataModel()
+fs.freq = 1800                   # MHz
+fs.txH = 90                     # Height of the cell site (meters)
+fs.rxH = 1.2                    # Height of mobile station (meters)
+fs.areaKind = AreaKind.Urban    # Area type (Urban, SubUrban or Open)
+fs.cityKind = CityKind.Medium   # City type (Small, Medium or Large)
+fs.checkFreqRange = false       # To use in the range outside of 500MHz-1500Mhz
 
 lat1 = db_erbs[1,:lat];
 long1 = db_erbs[1,:lon];
