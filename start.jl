@@ -1,4 +1,4 @@
-#include("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Móveis/Projeto/chAMPS/fp.jl")
+#include("start.jl")
 #Pkg.clone("https://github.com/timotrob/PathLoss.jl.git")
 #Pkg.add("RDatasets")
 #Pkg.add("Distributions")
@@ -13,9 +13,9 @@ using DataFrames
 using Gadfly
 using PathLoss
 
-db_train = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Móveis/Projeto/chAMPS/train.csv", separator = ',') #2045 lines
-db_test = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Móveis/Projeto/chAMPS/test.csv", separator = ',') #513 lines
-db_erbs = readtable("C:/Users/Artur/Desktop/ARTUR/UFPE/2016.2/Móveis/Projeto/chAMPS/erbs.csv", separator = ',') 
+db_train = readtable("train.csv", separator = ',') #2045 lines
+db_test = readtable("test.csv", separator = ',') #513 lines
+db_erbs = readtable("erbs.csv", separator = ',') 
 
 # funcao para calcular RMSE (Erro Quadratico Medio)
 function rmse(pathLossMedido, pathLossModelo)
