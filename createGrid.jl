@@ -49,7 +49,7 @@ end
 
 ################################################################
 
-db_erbs = readtable("C:/Users/mgb/Desktop/erbs.csv", separator = ',');
+db_erbs = readtable("erbs.csv", separator = ',');
 
 #### Okumura Hata Model ####
 fs = OkumuraHataModel()
