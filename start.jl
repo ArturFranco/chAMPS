@@ -129,18 +129,19 @@ errorFreeSpace = errorModel(fs, db_train)
 
 #### Okumura Hata Model ####
 oh = OkumuraHataModel()
-oh.freq = 800					# MHz
-oh.txH = 90						# Height of the cell site (meters)
-oh.rxH = 1.2                   	# Height of mobile station (meters)
+oh.freq = 1800					# MHz
+oh.txH = 50						# Height of the cell site (meters)
+oh.rxH = 1.5                   	# Height of mobile station (meters)
 oh.areaKind = AreaKind.Urban  	# Area type (Urban, SubUrban or Open)
 oh.cityKind = CityKind.Medium 	# City type (Small, Medium or Large)
+oh.checkFreqRange = false
 
 errorOkumuraHata = errorModel(oh, db_train)
 
 #### COST-231 Hata Extension Model ####
 c231h = Cost231HataModel()
 c231h.freq = 1800    			# MHz
-c231h.txH = 90      			# Height of the cell site
+c231h.txH = 50      			# Height of the cell site
 c231h.rxH = 1.5     			# Height of mobile station
 c231h.areaKind = AreaKind.Urban # City type (Small, Medium or Large)
 
@@ -148,8 +149,8 @@ errorCost231Hata = errorModel(c231h, db_train)
 
 #### COST-231 Waldrosch-Ikegami Model ####
 c231wi = Cost231Model()
-c231wi.freq = 800    				# MHz
-c231wi.txH = 90      				# Height of the cell site
+c231wi.freq = 1800    				# MHz
+c231wi.txH = 50      				# Height of the cell site
 c231wi.rxH = 1.5     				# Height of mobile station
 c231wi.ws = 20       				# Average width of the street (meters)
 c231wi.bs = 7        				# Average setback of buildings (meters)
@@ -160,28 +161,28 @@ errorCost231WaldIk = errorModel(c231wi, db_train)
 
 #### ECC-33 ####
 ecc33 = Ecc33Model()
-ecc33.freq = 950   # MHz
-ecc33.txH = 90     # Height of the cell site
-ecc33.rxH = 1.2    # Height of mobile station
+ecc33.freq = 1800   # MHz
+ecc33.txH = 50     # Height of the cell site
+ecc33.rxH = 1.5    # Height of mobile station
 
 errorECC33 = errorModel(ecc33, db_train)
 
 #### Ericsson 999
 er999 = EricssonModel()
-er999.freq = 800    # MHz
-er999.txH = 35      # Height of the cell site (15~40m)
-er999.rxH = 2       # Height of mobile station
+er999.freq = 1800    # MHz
+er999.txH = 40      # Height of the cell site (15~40m)
+er999.rxH = 1.5       # Height of mobile station
 er999.cityKind = CityKind.Medium
 
 errorEricsson999 = errorModel(er999, db_train)
 
 #### SUI (STANFORD UNIVERSITY INTERIM) ####
 sui = SuiModel()
-sui.freq = 2100    		# MHz
-sui.txH = 35      		# Height of the cell site (15~40m)
-sui.rxH = 2       		# Height of mobile station
+sui.freq = 1900    		# MHz
+sui.txH = 40      		# Height of the cell site (15~40m)
+sui.rxH = 1.5       		# Height of mobile station
 sui.shadowFading = 9.0 	# Shadow fading (8.2~10.6dB)
-sui.terrainKind = TerrainKind.B
+sui.terrainKind = TerrainKind.A
 # TerrainKind
 # Category A: hilly terrain with moderate-to-heavy tree
             # densities, which results in the maximum path loss
@@ -195,8 +196,8 @@ errorSUI = errorModel(sui, db_train)
 
 #### Lee Model ####
 lee = LeeModel()
-lee.freq = 950    				  # MHz
-lee.txH = 90      				  # Height of the cell site
+lee.freq = 1800    				  # MHz
+lee.txH = 50      				  # Height of the cell site
 lee.rxH = 1.5     				  # Height of mobile station
 lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
 # Area parameters are tuples as follow:
@@ -212,8 +213,8 @@ errorLee = errorModel(lee, db_train)
 
 #### Flat Earth Model ####
 fe = FlatEarthModel()
-fe.freq = 950    # MHz
-fe.txH = 90      # Height of the cell site
+fe.freq = 1800    # MHz
+fe.txH = 50      # Height of the cell site
 fe.rxH = 1.5     # Height of mobile station
 
 errorFlatEarth = errorModel(fe, db_train)
@@ -231,5 +232,9 @@ modelNames = DataFrame(ModelName=["FreeSpace","OkumuraHata",
 
 errorModels2 = hcat(modelNames, errorModels)
 
-
+table = @byrow! errorModels2 begin
+    @newcol MEDIA::Array{Float64}
+    :MEDIA = mean([:ErrorBTS1, :ErrorBTS2, :ErrorBTS3, 
+                   :ErrorBTS4, :ErrorBTS5, :ErrorBTS6])
+    end
 
