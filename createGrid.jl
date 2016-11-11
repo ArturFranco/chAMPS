@@ -10,7 +10,7 @@ init_lat = -8.080;
 end_lat = -8.065;
 
 #GRID Precition
-rH = 50; #meters
+rH = 10; #meters
 
 #meters per Latitude and Longitude units
 LAT = 111122.19769903777; #meters
@@ -20,7 +20,6 @@ LONG = 111105.27282045991; #meters
 rh_lat = rH*(1/LAT); #coords
 rh_long = rH*(1/LONG); #coords
 
-
 #create GRID
 grid = DataFrame(i = [], j = [], long = [], lat = []);
 
@@ -28,14 +27,11 @@ grid = DataFrame(i = [], j = [], long = [], lat = []);
 long_length = abs(end_long - init_long);
 lat_length = abs(end_lat - init_lat);
 
-
 lat_meters = lat_length * LAT;
 long_meters = long_length * LONG;
 
-
 num_i = ceil(Int64, long_length / rh_long);
 num_j = ceil(Int64, lat_length / rh_lat);
-
 
 for c_i = 0:num_i
     for c_j = 0:num_j
@@ -45,20 +41,16 @@ for c_i = 0:num_i
     end
 end  
 
-
-
 ################################################################
 
 db_erbs = readtable("erbs.csv", separator = ',');
 
-#### Okumura Hata Model ####
-fs = OkumuraHataModel()
-fs.freq = 1800                   # MHz
-fs.txH = 90                     # Height of the cell site (meters)
-fs.rxH = 1.2                    # Height of mobile station (meters)
-fs.areaKind = AreaKind.Urban    # Area type (Urban, SubUrban or Open)
-fs.cityKind = CityKind.Medium   # City type (Small, Medium or Large)
-fs.checkFreqRange = false       # To use in the range outside of 500MHz-1500Mhz
+#### Lee Model ####
+lee = LeeModel()
+lee.freq = 1800                   # MHz
+lee.txH = 50                      # Height of the cell site
+lee.rxH = 1.5                     # Height of mobile station
+lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
 
 lat1 = db_erbs[1,:lat];
 long1 = db_erbs[1,:lon];
@@ -85,10 +77,10 @@ grid_2 = @byrow! grid begin
     @newcol PL_4::Array{Float64}
     @newcol PL_5::Array{Float64}
     @newcol PL_6::Array{Float64}
-    :PL_1 = pathloss(fs, distanceInKm(:lat,:long, lat1, long1))
-    :PL_2 = pathloss(fs, distanceInKm(:lat,:long, lat2, long2))
-    :PL_3 = pathloss(fs, distanceInKm(:lat,:long, lat3, long3))
-    :PL_4 = pathloss(fs, distanceInKm(:lat,:long, lat4, long4))
-    :PL_5 = pathloss(fs, distanceInKm(:lat,:long, lat5, long5))
-    :PL_6 = pathloss(fs, distanceInKm(:lat,:long, lat6, long6))
+    :PL_1 = pathloss(lee, distanceInKm(:lat,:long, lat1, long1))
+    :PL_2 = pathloss(lee, distanceInKm(:lat,:long, lat2, long2))
+    :PL_3 = pathloss(lee, distanceInKm(:lat,:long, lat3, long3))
+    :PL_4 = pathloss(lee, distanceInKm(:lat,:long, lat4, long4))
+    :PL_5 = pathloss(lee, distanceInKm(:lat,:long, lat5, long5))
+    :PL_6 = pathloss(lee, distanceInKm(:lat,:long, lat6, long6))
 end;
