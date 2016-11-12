@@ -10,6 +10,7 @@ Atividades/passos
 - [DONE] Aplicar modelo escolhido no GRID
 - Definir técina para refinar GRID atraves das medições de treino
 - Implementar refinamento de GRID com tecnica escolhida
-- Implementar codigo de busca otimizada no GRID
+- Implementar codigo de busca no GRID
+- [DONE] Implementar codigo de busca otimizada no GRID
 - Calcular erro do conjunto teste
 - Como otimizar?
