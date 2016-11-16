@@ -3,7 +3,7 @@ using DataFramesMeta
 using PathLoss
 using Distances
 
-import createGRID
+#import createGRID
 
 db_erbs = readtable("erbs.csv", separator = ',');
 #meters per Latitude and Longitude units
@@ -12,7 +12,7 @@ LONG = 111105.27282045991; #meters
 
 
 #step should be on coord unites 
-function create(rH, X, c_lat, c_long, step_lat, step_long)
+function createGrid(rH, X, c_lat, c_long, step_lat, step_long)
 
   init_long = c_long - step_long;
   end_long = c_long + step_long;
@@ -183,8 +183,7 @@ minGrid[:SqEuclidean] = (0,0)
 minGrid[:SqEuclidean] = (0,0)
 @time for row in eachrow(minGrid)
     df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
-    row[:SqEuclidean] = minimum_distance(Hamming(), df_1, grid, range_i,range_j, range_col);
-
+    row[:SqEuclidean] = minimum_distance(SqEuclidean(), df_1, grid, range_i,range_j, range_col);
     #row[:Hamming] = minimum_distance(Hamming(), df_1, grid_2, range_i,range_j, range_col)
     #println(row[:SqEuclidean])
 end
