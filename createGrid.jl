@@ -89,19 +89,17 @@ end;
 
 train = readtable("train_pl.csv", separator = ',');
 
-    train_long = train[1,:lon];
-    train_lat = train[1,:lat];
+    # train_long = train[1,:lon];
+    # train_lat = train[1,:lat];
 
-    aux_i = ceil(Int64, (train_long - init_long)/rh_long);
-    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+    # aux_i = ceil(Int64, (train_long - init_long)/rh_long);
+    # aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
 
-    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+    # grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+    # grid_row[:PL_1] = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
+    # grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
 
-    pl1_tmp = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
-    #grid[((aux_i - 1) * (num_j +1)) + aux_j , :PL_1] = pl1_tmp;
-
-
-#=for row in eachrow(train)
+for row in eachrow(train)
     train_long = row[:lon];
     train_lat = row[:lat];
 
@@ -110,9 +108,15 @@ train = readtable("train_pl.csv", separator = ',');
 
     grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
 
-    pl1_tmp = mean([row[:PLBTS1], grid_row[:PL_1]]);
-    grid[((aux_i - 1) * (num_j +1)) + aux_j , :PL_1] = pl1_tmp;
+    grid_row[:PL_1] = mean([row[:PLBTS1], grid_row[:PL_1]]);
+    grid_row[:PL_2] = mean([row[:PLBTS2], grid_row[:PL_2]]);
+    grid_row[:PL_3] = mean([row[:PLBTS3], grid_row[:PL_3]]);
+    grid_row[:PL_4] = mean([row[:PLBTS4], grid_row[:PL_4]]);
+    grid_row[:PL_5] = mean([row[:PLBTS5], grid_row[:PL_5]]);
+    grid_row[:PL_6] = mean([row[:PLBTS6], grid_row[:PL_6]]);
 
-end=#
+    grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
+
+end
 
 
