@@ -1,16 +1,17 @@
 using DataFrames
 using DataFramesMeta
 using PathLoss
-#grid dimentions =  Longitude  -34.91  a  -34.887  | Latitude de  -8.080 a -8.065;
 
+#grid dimentions =  Longitude  -34.91  a  -34.887  | Latitude de  -8.080 a -8.065;
+med = readtable("medicoes.csv", separator = ',');
 #GRID Dimentions
-init_long = -34.91;
-end_long = -34.887;
-init_lat = -8.080;
-end_lat = -8.065;
+init_long = minimum(convert(Array, med[:lon]));
+end_long = maximum(convert(Array, med[:lon]));
+init_lat = minimum(convert(Array, med[:lat]));
+end_lat = maximum(convert(Array, med[:lat]));
 
 #GRID Precition
-rH = 10; #meters
+rH = 50; #meters
 
 #meters per Latitude and Longitude units
 LAT = 111122.19769903777; #meters
@@ -87,19 +88,19 @@ end;
 
 ################################################################
 
-train = readtable("train_pl.csv", separator = ',');
+train = readtable("test_pl.csv", separator = ',');
 
-    # train_long = train[1,:lon];
-    # train_lat = train[1,:lat];
+    train_long = train[1,:lon];
+    train_lat = train[1,:lat];
 
-    # aux_i = ceil(Int64, (train_long - init_long)/rh_long);
-    # aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+    aux_i = ceil(Int64, (train_long - init_long)/rh_long);
+    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
 
-    # grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
-    # grid_row[:PL_1] = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
-    # grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
+    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+    grid_row[:PL_1] = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
+    grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
 
-for row in eachrow(train)
+#=for row in eachrow(train)
     train_long = row[:lon];
     train_lat = row[:lat];
 
@@ -117,6 +118,6 @@ for row in eachrow(train)
 
     grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
 
-end
+end=#
 
 
