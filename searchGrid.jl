@@ -3,6 +3,7 @@ using DataFramesMeta
 using RDatasets
 using PathLoss
 using Distances
+
 db_erbs = readtable("erbs.csv", separator = ',');
 
 function exist(x,Y)
@@ -164,7 +165,7 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("test_pl.csv", separator = ',')
+minGrid = readtable("med_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));

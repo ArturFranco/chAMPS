@@ -16,6 +16,7 @@ using PathLoss
 db_train = readtable("train.csv", separator = ',') #2045 lines
 db_test = readtable("test.csv", separator = ',') #513 lines
 db_erbs = readtable("erbs.csv", separator = ',') 
+db_med = readtable("medicoes.csv", separator = ',') 
 
 # funcao para calcular RMSE (Erro Quadratico Medio)
 function rmse(pathLossMedido, pathLossModelo)
@@ -23,7 +24,7 @@ function rmse(pathLossMedido, pathLossModelo)
 end
 
 # calculando o pathloss medido
-function pathLossMedido(model, db)
+function pathLossMedido(db)
     table = @byrow! db begin
         @newcol PLBTS1::Array{Float64}
         @newcol PLBTS2::Array{Float64}
@@ -122,7 +123,11 @@ end
 ###########################################################
 
 #### Free Space Model ####
-fs = FreeSpaceModel() 	
+
+db_med = pathLossMedido(db_med)
+writetable("med_pl", db_med, separator=',')
+
+#=fs = FreeSpaceModel() 	
 fs.freq = 1800 	# MHz
 
 errorFreeSpace = errorModel(fs, db_train)
@@ -238,3 +243,4 @@ table = @byrow! errorModels2 begin
                    :ErrorBTS4, :ErrorBTS5, :ErrorBTS6])
     end
 
+=#

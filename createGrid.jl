@@ -14,7 +14,7 @@ end_lat = maximum(convert(Array, med[:lat]));
 rH = 50; #meters
 
 #meters per Latitude and Longitude units
-LAT = 111122.19769903777; #meters
+LAT = (2*pi/360)*6378; #meters
 LONG = 111105.27282045991; #meters
 
 #Latitude and Longitude Precision
