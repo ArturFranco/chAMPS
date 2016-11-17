@@ -70,7 +70,7 @@ long5 = db_erbs[5,:lon];
 lat6 = db_erbs[6,:lat];
 long6 = db_erbs[6,:lon];
 
-grid_2 = @byrow! grid begin
+grid = @byrow! grid begin
     @newcol PL_1::Array{Float64}
     @newcol PL_2::Array{Float64}
     @newcol PL_3::Array{Float64}
@@ -84,3 +84,35 @@ grid_2 = @byrow! grid begin
     :PL_5 = pathloss(lee, distanceInKm(:lat,:long, lat5, long5))
     :PL_6 = pathloss(lee, distanceInKm(:lat,:long, lat6, long6))
 end;
+
+################################################################
+
+train = readtable("train_pl.csv", separator = ',');
+
+    train_long = train[1,:lon];
+    train_lat = train[1,:lat];
+
+    aux_i = ceil(Int64, (train_long - init_long)/rh_long);
+    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+
+    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+
+    pl1_tmp = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
+    #grid[((aux_i - 1) * (num_j +1)) + aux_j , :PL_1] = pl1_tmp;
+
+
+#=for row in eachrow(train)
+    train_long = row[:lon];
+    train_lat = row[:lat];
+
+    aux_i = ceil(Int64, (train_long - init_long)/rh_long);
+    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+
+    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+
+    pl1_tmp = mean([row[:PLBTS1], grid_row[:PL_1]]);
+    grid[((aux_i - 1) * (num_j +1)) + aux_j , :PL_1] = pl1_tmp;
+
+end=#
+
+
