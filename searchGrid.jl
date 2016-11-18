@@ -52,7 +52,7 @@ function minimum_distance(func, df_1, df_2)
     if(result < distance)
       distance = result;
       pair = (row[:i],row[:j]);
-      long = row[:long]
+      long = row[:lon]
       lat = row[:lat]
     end
     if(distance == 0)
@@ -66,44 +66,59 @@ end
 
 #grid dimentions =  Longitude  -34.91  a  -34.887  | Latitude de  -8.080 a -8.065;
 
-med = readtable("medicoes.csv", separator = ',');
+#med = readtable("medicoes.csv", separator = ',');
 #GRID Dimentions
-init_long = minimum(convert(Array, med[:lon]));
-end_long = maximum(convert(Array, med[:lon]));
+#=init_lon = minimum(convert(Array, med[:lon]));
+end_lon = maximum(convert(Array, med[:lon]));
 init_lat = minimum(convert(Array, med[:lat]));
-end_lat = maximum(convert(Array, med[:lat]));
+end_lat = maximum(convert(Array, med[:lat]));=#
 
-#meters per Latitude and Longitude units
-LAT = 111122.19769903777; #meters
-LONG = 111105.27282045991; #meters
+init_lon = -34.905396;
+end_lon = -34.885067;
+init_lat = -8.077546;
+end_lat = -8.060549;
 
 function createGRID(rH, X)
   #Latitude and Longitude Precision
-  rh_lat = rH*(1/LAT); #coords
-  rh_long = rH*(1/LONG); #coords
-
   #create GRID
-  grid = DataFrame(i = [], j = [], long = [], lat = []);
+  grid = DataFrame(i = [], j = [], lon = [], lat = []);
 
-  #calculate Latitude and longitude lengths
-  long_length = abs(end_long - init_long);
-  lat_length = abs(end_lat - init_lat);
+  #new_latitude  = latitude  + (dy / r_earth) * (180 / pi);
+  #new_longitude = longitude + (dx / r_earth) * (180 / pi) / cos(latitude * pi/180);
+  r_earth = 6378; #km
+  rH = rH/1000; #km
 
-  lat_meters = lat_length * LAT;
-  long_meters = long_length * LONG;
+  num_i = 1;
+  num_j = 1;
+  aux_j = 1;
 
-  num_i = ceil(Int64, long_length / rh_long);
-  X[1] = num_i
-  num_j = ceil(Int64, lat_length / rh_lat);
-  X[2] = num_j
+  new_lat = init_lat + ((rH/2) / r_earth) * (180 / pi);
+  new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
+  #push!(grid, [num_i, num_j, new_lon, new_lat]);
 
-  for c_i = 0:num_i
-      for c_j = 0:num_j
-          a_long = init_long + (c_i*rh_long) + (rh_long/2);
-          a_lat = init_lat + (c_j*rh_lat) + (rh_lat/2);
-          push!(grid, [c_i + 1, c_j + 1, a_long, a_lat]);
+
+  @time while new_lat <= end_lat 
+      lat = new_lat;
+      while new_lon <= end_lon
+          push!(grid, [num_i, aux_j, new_lon, new_lat]);
+          lon = new_lon;
+          new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
+          aux_j = aux_j + 1;
+          num_j = aux_j;
+          
       end
+
+      new_lat = lat + (rH / r_earth) * (180 / pi);
+      new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
+      aux_j = 1;
+      num_i = num_i + 1;
   end
+  num_i = num_i - 1;
+  num_j = num_j - 1;
+
+  X[1] = num_i;
+  X[2] = num_j;
+  ################################################################
 
   #### Lee Model ####
   lee = LeeModel()
@@ -113,22 +128,22 @@ function createGRID(rH, X)
   lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
 
   lat1 = db_erbs[1,:lat];
-  long1 = db_erbs[1,:lon];
+  lon1 = db_erbs[1,:lon];
 
   lat2 = db_erbs[2,:lat];
-  long2 = db_erbs[2,:lon];
+  lon2 = db_erbs[2,:lon];
 
   lat3 = db_erbs[3,:lat];
-  long3 = db_erbs[3,:lon];
+  lon3 = db_erbs[3,:lon];
 
   lat4 = db_erbs[4,:lat];
-  long4 = db_erbs[4,:lon];
+  lon4 = db_erbs[4,:lon];
 
   lat5 = db_erbs[5,:lat];
-  long5 = db_erbs[5,:lon];
+  lon5 = db_erbs[5,:lon];
 
   lat6 = db_erbs[6,:lat];
-  long6 = db_erbs[6,:lon];
+  lon6 = db_erbs[6,:lon];
 
   grid_2 = @byrow! grid begin
       @newcol PL_1::Array{Float64}
@@ -137,12 +152,12 @@ function createGRID(rH, X)
       @newcol PL_4::Array{Float64}
       @newcol PL_5::Array{Float64}
       @newcol PL_6::Array{Float64}
-      :PL_1 = pathloss(lee, distanceInKm(:lat,:long, lat1, long1))
-      :PL_2 = pathloss(lee, distanceInKm(:lat,:long, lat2, long2))
-      :PL_3 = pathloss(lee, distanceInKm(:lat,:long, lat3, long3))
-      :PL_4 = pathloss(lee, distanceInKm(:lat,:long, lat4, long4))
-      :PL_5 = pathloss(lee, distanceInKm(:lat,:long, lat5, long5))
-      :PL_6 = pathloss(lee, distanceInKm(:lat,:long, lat6, long6))
+      :PL_1 = pathloss(lee, distanceInKm(:lat,:lon, lat1, lon1))
+      :PL_2 = pathloss(lee, distanceInKm(:lat,:lon, lat2, lon2))
+      :PL_3 = pathloss(lee, distanceInKm(:lat,:lon, lat3, lon3))
+      :PL_4 = pathloss(lee, distanceInKm(:lat,:lon, lat4, lon4))
+      :PL_5 = pathloss(lee, distanceInKm(:lat,:lon, lat5, lon5))
+      :PL_6 = pathloss(lee, distanceInKm(:lat,:lon, lat6, lon6))
   end;
   return grid_2
 end
@@ -165,7 +180,7 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("med_pl.csv", separator = ',')
+minGrid = readtable("train_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));
@@ -174,13 +189,13 @@ X = [0,0];
 grid50 = createGRID(50,X);
 num_i = maximum(convert(Array, grid50[:i]))#X[1];
 num_j = maximum(convert(Array, grid50[:j]))#X[2];
-#=
-grid10 = createGRID(10,X);
+
+#=grid10 = createGRID(10,X);
 grid5 = createGRID(5,X);
 
 writetable("grid10.csv", grid10,separator=';')
-writetable("grid5.csv", grid5,separator=';')
-=#
+writetable("grid5.csv", grid5,separator=';')=#
+
 grid10 = readtable("grid10.csv", separator = ';');
 grid5 = readtable("grid5.csv", separator = ';');
 #grid1 = createGRID(1,X);
@@ -225,7 +240,9 @@ aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
     range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
     gridAux = filterGrid(grid5,range_i,range_j)
     row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
-    row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon])
+    row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]);
+    
+
 end
 println(head(minGrid))
 println(mean(minGrid[:distance]))
