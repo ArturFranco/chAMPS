@@ -45,7 +45,17 @@ new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
     aux_j = 1;
     num_i = num_i + 1;
 end
-num_i = num_i - 1;
+lat = new_lat;
+while new_lon <= end_lon
+    push!(grid, [num_i, aux_j, new_lon, new_lat]);
+    lon = new_lon;
+    new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
+    aux_j = aux_j + 1;
+    num_j = aux_j;
+    
+end
+
+num_i = num_i;
 num_j = num_j - 1;
 ################################################################
 
@@ -93,36 +103,121 @@ end;
 
 ################################################################
 
-#=train = readtable("test_pl.csv", separator = ',');
+train = readtable("train_pl.csv", separator = ',');
 
-    train_lon = train[2,:lon];
-    train_lat = train[2,:lat];
+    count_array = fill(1, (size(grid)[1],6));
+    grid_2 = head(grid,nrow(grid));
 
-    aux_i = ceil(Int64, (train_lon - init_lon)/rh_lon);
-    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+#=    row = train[1647,:];
 
-    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
-    grid_row[:PL_1] = mean([train[1,:PLBTS1], grid_row[:PL_1]]);
-    grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;=#
+    train_lon = row[1,:lon];
+    train_lat = row[1,:lat];
 
-#=for row in eachrow(train)
+    i = 1;
+    j = 1;
+
+    new_lat = init_lat + (rH / r_earth) * (180 / pi);
+   
+    while new_lat < train_lat
+        i = i + 1;
+        new_lat = new_lat + (rH / r_earth) * (180 / pi);
+    end
+
+    new_lat = new_lat - ((rH/2) / r_earth) * (180 / pi);
+    new_lon = init_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
+
+    while new_lon < train_lon
+        j = j + 1;
+ 
+        new_lon = new_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
+    end
+
+    index = ((i - 1) * (num_j)) + j;
+
+    grid_row = grid_2[index , :];
+    
+    count = count_array[index, 1];
+    grid_row[:PL_1] = (grid_row[:PL_1]*count + row[:PLBTS1]) / (count + 1);
+    count_array[index, 1] = count + 1;
+
+    count = count_array[index, 2];
+    grid_row[:PL_2] = (grid_row[:PL_2]*count + row[:PLBTS2]) / (count + 1);
+    count_array[index, 2] = count + 1;
+
+    count = count_array[index, 3];
+    grid_row[:PL_3] = (grid_row[:PL_3]*count + row[:PLBTS3]) / (count + 1);
+    count_array[index, 3] = count + 1;
+
+    count = count_array[index, 4];
+    grid_row[:PL_4] = (grid_row[:PL_4]*count + row[:PLBTS4]) / (count + 1);
+    count_array[index, 4] = count + 1;
+
+    count = count_array[index, 5];
+    grid_row[:PL_5] = (grid_row[:PL_5]*count + row[:PLBTS5]) / (count + 1);
+    count_array[index, 5] = count + 1;
+
+    count = count_array[index, 6];
+    grid_row[:PL_6] = (grid_row[:PL_6]*count + row[:PLBTS6]) / (count + 1);
+    count_array[index, 6] = count + 1;
+
+    grid_2[index, :] = grid_row;
+=#
+
+for row in eachrow(train)
     train_lon = row[:lon];
     train_lat = row[:lat];
 
-    aux_i = ceil(Int64, (train_lon - init_lon)/rh_lon);
-    aux_j = ceil(Int64, (train_lat - init_lat)/rh_lat);
+    i = 1;
+    j = 1;
 
-    grid_row = grid[((aux_i - 1) * (num_j +1)) + aux_j , :];
+    new_lat = init_lat + (rH / r_earth) * (180 / pi);
+   
+    while new_lat < train_lat
+        i = i + 1;
+        new_lat = new_lat + (rH / r_earth) * (180 / pi);
+    end
 
-    grid_row[:PL_1] = mean([row[:PLBTS1], grid_row[:PL_1]]);
-    grid_row[:PL_2] = mean([row[:PLBTS2], grid_row[:PL_2]]);
-    grid_row[:PL_3] = mean([row[:PLBTS3], grid_row[:PL_3]]);
-    grid_row[:PL_4] = mean([row[:PLBTS4], grid_row[:PL_4]]);
-    grid_row[:PL_5] = mean([row[:PLBTS5], grid_row[:PL_5]]);
-    grid_row[:PL_6] = mean([row[:PLBTS6], grid_row[:PL_6]]);
+    new_lat = new_lat - ((rH/2) / r_earth) * (180 / pi);
+    new_lon = init_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
 
-    grid[((aux_i - 1) * (num_j +1)) + aux_j, :] = grid_row;
+    while new_lon < train_lon
+        j = j + 1;
+ 
+        new_lon = new_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
+    end
 
-end=#
+    index = ((i - 1) * (num_j)) + j;
+
+    grid_row = grid_2[index , :];
+    
+    count = count_array[index, 1];
+    grid_row[:PL_1] = (grid_row[:PL_1]*count + row[:PLBTS1]) / (count + 1);
+    count_array[index, 1] = count + 1;
+
+    count = count_array[index, 2];
+    grid_row[:PL_2] = (grid_row[:PL_2]*count + row[:PLBTS2]) / (count + 1);
+    count_array[index, 2] = count + 1;
+
+    count = count_array[index, 3];
+    grid_row[:PL_3] = (grid_row[:PL_3]*count + row[:PLBTS3]) / (count + 1);
+    count_array[index, 3] = count + 1;
+
+    count = count_array[index, 4];
+    grid_row[:PL_4] = (grid_row[:PL_4]*count + row[:PLBTS4]) / (count + 1);
+    count_array[index, 4] = count + 1;
+
+    count = count_array[index, 5];
+    grid_row[:PL_5] = (grid_row[:PL_5]*count + row[:PLBTS5]) / (count + 1);
+    count_array[index, 5] = count + 1;
+
+    count = count_array[index, 6];
+    grid_row[:PL_6] = (grid_row[:PL_6]*count + row[:PLBTS6]) / (count + 1);
+    count_array[index, 6] = count + 1;
+
+    grid_2[index, :] = grid_row;
+    
+end
+
+writetable("grid50.csv", grid_2,separator=';')
 
 
