@@ -180,13 +180,13 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("med_pl.csv", separator = ',')
+minGrid = readtable("train_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));
 
 X = [0,0];
-grid50 = createGRID(50,X);
+grid50 = readtable("grid50.csv", separator = ';');
 num_i = maximum(convert(Array, grid50[:i]))#X[1];
 num_j = maximum(convert(Array, grid50[:j]))#X[2];
 
