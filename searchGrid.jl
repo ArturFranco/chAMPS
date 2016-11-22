@@ -97,7 +97,7 @@ function createGRID(rH, X)
   #push!(grid, [num_i, num_j, new_lon, new_lat]);
 
 
-  @time while new_lat <= end_lat 
+  @time while new_lat <= end_lat
       lat = new_lat;
       while new_lon <= end_lon
           push!(grid, [num_i, aux_j, new_lon, new_lat]);
@@ -105,7 +105,7 @@ function createGRID(rH, X)
           new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
           aux_j = aux_j + 1;
           num_j = aux_j;
-          
+
       end
 
       new_lat = lat + (rH / r_earth) * (180 / pi);
@@ -180,7 +180,7 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("train_pl.csv", separator = ',')
+minGrid = readtable("med_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));
@@ -200,8 +200,8 @@ grid10 = readtable("grid10.csv", separator = ';');
 grid5 = readtable("grid5.csv", separator = ';');
 #grid1 = createGRID(1,X);
 
-range_i = 1:(num_i+1);
-range_j = 1:(num_j+1);
+range_i = 1:(num_i);
+range_j = 1:(num_j);
 range_col = 1:10;
 #println(nrow(grid))
 #@time grid50 = filterGrid(grid50,range_i,range_j)
@@ -241,7 +241,7 @@ aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
     gridAux = filterGrid(grid5,range_i,range_j)
     row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
     row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]);
-    
+
 
 end
 println(head(minGrid))
