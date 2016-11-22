@@ -110,7 +110,7 @@ end
 
 # calcula RMSE para um determinado modelo
 function errorModel(model, db)
-    db = pathLossMedido(model, db)
+    db = pathLossMedido(db)
     db = calcDistance(model, db)
     tableError = calcErro(model, db)
     tableError = calcMediaErro(tableError)
@@ -124,13 +124,13 @@ end
 
 #### Free Space Model ####
 
-db_med = pathLossMedido(db_med)
-writetable("med_pl", db_med, separator=',')
+db_med = pathLossMedido(db_train)
+#writetable("med_pl", db_med, separator=',')
 
-#=fs = FreeSpaceModel() 	
+fs = FreeSpaceModel() 	
 fs.freq = 1800 	# MHz
 
-errorFreeSpace = errorModel(fs, db_train)
+#=errorFreeSpace = errorModel(fs, db_train)
 
 #### Okumura Hata Model ####
 oh = OkumuraHataModel()
@@ -242,5 +242,4 @@ table = @byrow! errorModels2 begin
     :MEDIA = mean([:ErrorBTS1, :ErrorBTS2, :ErrorBTS3, 
                    :ErrorBTS4, :ErrorBTS5, :ErrorBTS6])
     end
-
 =#

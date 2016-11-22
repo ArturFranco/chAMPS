@@ -62,11 +62,30 @@ num_j = num_j - 1;
 db_erbs = readtable("erbs.csv", separator = ',');
 
 #### Lee Model ####
-lee = LeeModel()
+#=lee = LeeModel()
 lee.freq = 1800                   # MHz
 lee.txH = 50                      # Height of the cell site
 lee.rxH = 1.5                     # Height of mobile station
 lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
+=#
+
+#=oh = OkumuraHataModel()
+oh.freq = 1800                  # MHz
+oh.txH = 50                     # Height of the cell site (meters)
+oh.rxH = 1.5                    # Height of mobile station (meters)
+oh.areaKind = AreaKind.Urban    # Area type (Urban, SubUrban or Open)
+oh.cityKind = CityKind.Medium   # City type (Small, Medium or Large)
+oh.checkFreqRange = false=#
+
+
+
+sui = SuiModel()
+sui.freq = 1900         # MHz
+sui.txH = 40            # Height of the cell site (15~40m)
+sui.rxH = 1.5               # Height of mobile station
+sui.shadowFading = 9.0  # Shadow fading (8.2~10.6dB)
+sui.terrainKind = TerrainKind.A
+
 
 lat1 = db_erbs[1,:lat];
 lon1 = db_erbs[1,:lon];
@@ -93,12 +112,12 @@ grid = @byrow! grid begin
     @newcol PL_4::Array{Float64}
     @newcol PL_5::Array{Float64}
     @newcol PL_6::Array{Float64}
-    :PL_1 = pathloss(lee, distanceInKm(:lat,:lon, lat1, lon1))
-    :PL_2 = pathloss(lee, distanceInKm(:lat,:lon, lat2, lon2))
-    :PL_3 = pathloss(lee, distanceInKm(:lat,:lon, lat3, lon3))
-    :PL_4 = pathloss(lee, distanceInKm(:lat,:lon, lat4, lon4))
-    :PL_5 = pathloss(lee, distanceInKm(:lat,:lon, lat5, lon5))
-    :PL_6 = pathloss(lee, distanceInKm(:lat,:lon, lat6, lon6))
+    :PL_1 = pathloss(sui, distanceInKm(:lat,:lon, lat1, lon1))
+    :PL_2 = pathloss(sui, distanceInKm(:lat,:lon, lat2, lon2))
+    :PL_3 = pathloss(sui, distanceInKm(:lat,:lon, lat3, lon3))
+    :PL_4 = pathloss(sui, distanceInKm(:lat,:lon, lat4, lon4))
+    :PL_5 = pathloss(sui, distanceInKm(:lat,:lon, lat5, lon5))
+    :PL_6 = pathloss(sui, distanceInKm(:lat,:lon, lat6, lon6))
 end;
 
 ################################################################

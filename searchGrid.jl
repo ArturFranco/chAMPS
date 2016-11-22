@@ -180,7 +180,7 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("train_pl.csv", separator = ',')
+minGrid = readtable("test_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));
@@ -224,26 +224,57 @@ divArea = 8
 aux_i10 = divInteiro((range_i[end]+1)-range_i[1],divArea*2)
 aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
 
+
+#=
+distance = [Euclidean(), SqEuclidean(), Cityblock(), Chebyshev(), Jaccard(), CosineDist(), CorrDist(), CorrDist()]
+distance_mean = fill(0.0, size(distance)[1]);
+
+
+i = 1;
+
+@time while(i <= size(distance)[1])
+  @time for row in eachrow(minGrid)
+  	#search in 50 meters
+      df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
+      row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(distance[i], df_1, grid50);
+    #--------------------------- search in 10 meters
+      range_i = mapGrid(50,10,row[:SqEuclidean1][1]-aux_i10) : mapGrid(50,10,row[:SqEuclidean1][1]+aux_i10)
+      range_j = mapGrid(50,10,row[:SqEuclidean1][2]-aux_j10) : mapGrid(50,10,row[:SqEuclidean1][2]+aux_j10)
+      gridAux = filterGrid(grid10,range_i,range_j)
+      row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(distance[i], df_1, gridAux);
+  	#--------------------------- search in 5 meters
+    	aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
+    	aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
+    	range_i = mapGrid(10,5,row[:SqEuclidean2][1]-aux_i5) : mapGrid(10,5,row[:SqEuclidean2][1]+aux_i5)
+      range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
+      gridAux = filterGrid(grid5,range_i,range_j)
+      row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(distance[i], df_1, gridAux);
+      row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]); 
+  end
+  distance_mean[i] = mean(minGrid[:distance])
+  i = i + 1;
+  
+end=#
+
 @time for row in eachrow(minGrid)
-	#search in 50 meters
-    df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
-    row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, grid50);
-  #--------------------------- search in 10 meters
-    range_i = mapGrid(50,10,row[:SqEuclidean1][1]-aux_i10) : mapGrid(50,10,row[:SqEuclidean1][1]+aux_i10)
-    range_j = mapGrid(50,10,row[:SqEuclidean1][2]-aux_j10) : mapGrid(50,10,row[:SqEuclidean1][2]+aux_j10)
-    gridAux = filterGrid(grid10,range_i,range_j)
-    row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
-	#--------------------------- search in 5 meters
-  	aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
-  	aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
-  	range_i = mapGrid(10,5,row[:SqEuclidean2][1]-aux_i5) : mapGrid(10,5,row[:SqEuclidean2][1]+aux_i5)
-    range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
-    gridAux = filterGrid(grid5,range_i,range_j)
-    row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
-    row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]);
-
-
+    #search in 50 meters
+      df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
+      row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, grid50);
+    #--------------------------- search in 10 meters
+      range_i = mapGrid(50,10,row[:SqEuclidean1][1]-aux_i10) : mapGrid(50,10,row[:SqEuclidean1][1]+aux_i10)
+      range_j = mapGrid(50,10,row[:SqEuclidean1][2]-aux_j10) : mapGrid(50,10,row[:SqEuclidean1][2]+aux_j10)
+      gridAux = filterGrid(grid10,range_i,range_j)
+      row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
+    #--------------------------- search in 5 meters
+      aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
+      aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
+      range_i = mapGrid(10,5,row[:SqEuclidean2][1]-aux_i5) : mapGrid(10,5,row[:SqEuclidean2][1]+aux_i5)
+      range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
+      gridAux = filterGrid(grid5,range_i,range_j)
+      row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
+      row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]); 
 end
+
 println(head(minGrid))
 println(mean(minGrid[:distance]))
 #
