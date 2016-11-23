@@ -120,12 +120,21 @@ function createGRID(rH, X)
   X[2] = num_j;
   ################################################################
 
-  #### Lee Model ####
+ #= #### Lee Model ####
   lee = LeeModel()
   lee.freq = 1800                   # MHz
   lee.txH = 50                      # Height of the cell site
   lee.rxH = 1.5                     # Height of mobile station
-  lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
+  lee.leeArea = LeeArea.NewYorkCity # (determined empirically) =#
+
+  #### Okumura Hata Model ####
+  oh = OkumuraHataModel()
+  oh.freq = 1800          # MHz
+  oh.txH = 50           # Height of the cell site (meters)
+  oh.rxH = 1.5                    # Height of mobile station (meters)
+  oh.areaKind = AreaKind.Urban    # Area type (Urban, SubUrban or Open)
+  oh.cityKind = CityKind.Medium   # City type (Small, Medium or Large)
+  oh.checkFreqRange = false
 
   lat1 = db_erbs[1,:lat];
   lon1 = db_erbs[1,:lon];
@@ -152,12 +161,12 @@ function createGRID(rH, X)
       @newcol PL_4::Array{Float64}
       @newcol PL_5::Array{Float64}
       @newcol PL_6::Array{Float64}
-      :PL_1 = pathloss(lee, distanceInKm(:lat,:lon, lat1, lon1))
-      :PL_2 = pathloss(lee, distanceInKm(:lat,:lon, lat2, lon2))
-      :PL_3 = pathloss(lee, distanceInKm(:lat,:lon, lat3, lon3))
-      :PL_4 = pathloss(lee, distanceInKm(:lat,:lon, lat4, lon4))
-      :PL_5 = pathloss(lee, distanceInKm(:lat,:lon, lat5, lon5))
-      :PL_6 = pathloss(lee, distanceInKm(:lat,:lon, lat6, lon6))
+      :PL_1 = pathloss(oh, distanceInKm(:lat,:lon, lat1, lon1))
+      :PL_2 = pathloss(oh, distanceInKm(:lat,:lon, lat2, lon2))
+      :PL_3 = pathloss(oh, distanceInKm(:lat,:lon, lat3, lon3))
+      :PL_4 = pathloss(oh, distanceInKm(:lat,:lon, lat4, lon4))
+      :PL_5 = pathloss(oh, distanceInKm(:lat,:lon, lat5, lon5))
+      :PL_6 = pathloss(oh, distanceInKm(:lat,:lon, lat6, lon6))
   end;
   return grid_2
 end
@@ -180,7 +189,7 @@ writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
 
-minGrid = readtable("train_pl.csv", separator = ',')
+minGrid = readtable("test_pl.csv", separator = ',')
 #println(num_i, num_j)
 #println(nrow(grid))
 delete!(minGrid, (3:8));
@@ -227,19 +236,19 @@ aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
 @time for row in eachrow(minGrid)
 	#search in 50 meters
     df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
-    row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, grid50);
+    row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, grid50);
   #--------------------------- search in 10 meters
     range_i = mapGrid(50,10,row[:SqEuclidean1][1]-aux_i10) : mapGrid(50,10,row[:SqEuclidean1][1]+aux_i10)
     range_j = mapGrid(50,10,row[:SqEuclidean1][2]-aux_j10) : mapGrid(50,10,row[:SqEuclidean1][2]+aux_j10)
     gridAux = filterGrid(grid10,range_i,range_j)
-    row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
+    row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
 	#--------------------------- search in 5 meters
   	aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
   	aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
   	range_i = mapGrid(10,5,row[:SqEuclidean2][1]-aux_i5) : mapGrid(10,5,row[:SqEuclidean2][1]+aux_i5)
     range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
     gridAux = filterGrid(grid5,range_i,range_j)
-    row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
+    row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
     row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]);
 
 
@@ -248,3 +257,13 @@ println(head(minGrid))
 println(mean(minGrid[:distance]))
 #
 #para deixar mais rapido, tentar verificar pontos próximos para não ter que fazer o grid toda iteração
+
+# Separando tupla SqEuclidean3 em duas colunas diferentes
+ minGrid2 = @byrow! minGrid begin
+      @newcol Point_i::Array{Int64}
+      @newcol Point_j::Array{Int64}
+      :Point_i = :SqEuclidean3[1]
+      :Point_j = :SqEuclidean3[2]
+  end
+  
+  writetable("minGrid_ij.csv", minGrid2, separator = ';');
