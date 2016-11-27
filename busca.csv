@@ -1,0 +1,6 @@
+SEM APRIMORAMENTO,,,,,,,COM “APRIMORAMENTO”,,,,,
+GRID 1 (m),GRID 2 (m),GRID 3 (m),TESTE,ERRO (m),TEMPO (s),,GRID 1 (m),GRID 2 (m),GRID 3 (m),TESTE,ERRO (m),TEMPO (s)
+50,20,10,train,99,116,,50,20,10,train,99,116
+50,20,10,test,120,30,,50,20,10,test,120,30
+75,20,10,train,102,64,,75,50,20,train,103,71
+75,20,10,test,120,16,,75,50,20,test,119,19

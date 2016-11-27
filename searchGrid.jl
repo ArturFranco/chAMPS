@@ -78,173 +78,230 @@ end_lon = -34.885067;
 init_lat = -8.077546;
 end_lat = -8.060549;
 
-function createGRID(rH, X)
-  #Latitude and Longitude Precision
-  #create GRID
-  grid = DataFrame(i = [], j = [], lon = [], lat = []);
-
-  #new_latitude  = latitude  + (dy / r_earth) * (180 / pi);
-  #new_longitude = longitude + (dx / r_earth) * (180 / pi) / cos(latitude * pi/180);
-  r_earth = 6378; #km
-  rH = rH/1000; #km
-
-  num_i = 1;
-  num_j = 1;
-  aux_j = 1;
-
-  new_lat = init_lat + ((rH/2) / r_earth) * (180 / pi);
-  new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
-  #push!(grid, [num_i, num_j, new_lon, new_lat]);
-
-
-  @time while new_lat <= end_lat
-      lat = new_lat;
-      while new_lon <= end_lon
-          push!(grid, [num_i, aux_j, new_lon, new_lat]);
-          lon = new_lon;
-          new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
-          aux_j = aux_j + 1;
-          num_j = aux_j;
-
-      end
-
-      new_lat = lat + (rH / r_earth) * (180 / pi);
-      new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
-      aux_j = 1;
-      num_i = num_i + 1;
-  end
-  num_i = num_i - 1;
-  num_j = num_j - 1;
-
-  X[1] = num_i;
-  X[2] = num_j;
-  ################################################################
-
-  #### Lee Model ####
-  lee = LeeModel()
-  lee.freq = 1800                   # MHz
-  lee.txH = 50                      # Height of the cell site
-  lee.rxH = 1.5                     # Height of mobile station
-  lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
-
-  lat1 = db_erbs[1,:lat];
-  lon1 = db_erbs[1,:lon];
-
-  lat2 = db_erbs[2,:lat];
-  lon2 = db_erbs[2,:lon];
-
-  lat3 = db_erbs[3,:lat];
-  lon3 = db_erbs[3,:lon];
-
-  lat4 = db_erbs[4,:lat];
-  lon4 = db_erbs[4,:lon];
-
-  lat5 = db_erbs[5,:lat];
-  lon5 = db_erbs[5,:lon];
-
-  lat6 = db_erbs[6,:lat];
-  lon6 = db_erbs[6,:lon];
-
-  grid_2 = @byrow! grid begin
-      @newcol PL_1::Array{Float64}
-      @newcol PL_2::Array{Float64}
-      @newcol PL_3::Array{Float64}
-      @newcol PL_4::Array{Float64}
-      @newcol PL_5::Array{Float64}
-      @newcol PL_6::Array{Float64}
-      :PL_1 = pathloss(lee, distanceInKm(:lat,:lon, lat1, lon1))
-      :PL_2 = pathloss(lee, distanceInKm(:lat,:lon, lat2, lon2))
-      :PL_3 = pathloss(lee, distanceInKm(:lat,:lon, lat3, lon3))
-      :PL_4 = pathloss(lee, distanceInKm(:lat,:lon, lat4, lon4))
-      :PL_5 = pathloss(lee, distanceInKm(:lat,:lon, lat5, lon5))
-      :PL_6 = pathloss(lee, distanceInKm(:lat,:lon, lat6, lon6))
-  end;
-  return grid_2
-end
 ################################################################
 function mapGrid(N,n,x)
 
 return ((N/n)*(2*x -1) + 1)/2
 
 end
+
+function vinici(minGrid_ij, range, distMeters, grid5,name)
+
+	point_i = 0
+	point_j = 0
+	end_i = convert(Int64, maximum(convert(Array, grid5[:i])));
+	end_j = convert(Int64, maximum(convert(Array, grid5[:j])));
+
+	range_i = 1:end_i;
+	range_j = 1:end_j;
+	range_i5 = range_i;
+	range_j5 = range_j;
+	index = 0;
+
+	maxPoint_i5 = 0;
+	maxPoint_j5 = 0;
+	minPoint_i5 = 0;
+	minPoint_j5 = 0;
+
+	minGrid_ij[:Flag] = false;
+  grid5[:Flag] = false;
+
+	for row in eachrow(minGrid_ij)
+		if(row[:distance] <= (distMeters/1000))
+			row[:Flag] = true;
+      index = ((row[:Point_i] - 1) * range_j[end]) + row[:Point_j]
+      #println(grid5[index,:Flag])
+      grid5[index,:Flag] = true;
+      #println(index)
+      #println(grid5[index,:Flag])
+		end
+	end
+	for row in eachrow(minGrid_ij)
+
+		if(row[:Flag] == true)
+
+
+			point_i = row[:Point_i]
+			point_j = row[:Point_j]
+
+			if(exist(point_i-range, range_i))
+				minPoint_i5 = point_i-range;
+			else
+				minPoint_i5 = 1;
+			end
+
+			if(exist(point_i+range, range_i))
+				maxPoint_i5 = point_i+range;
+			else
+				range_i5 = end_i;
+			end
+
+			if(exist(point_j-range, range_j))
+				minPoint_j5 = point_j-range;
+			else
+				minPoint_j5 = 1;
+			end
+
+			if(exist(point_j+range, range_j))
+				maxPoint_j5 = point_j+range;
+
+			else
+				maxPoint_j5 = end_j;
+			end
+
+			range_i5 = minPoint_i5:maxPoint_i5;
+			range_j5 = minPoint_j5:maxPoint_j5;
+
+			index1 = ((point_i - 1) * (end_j)) + point_j
+
+			PL_BTS1 = grid5[index1, :PL_1]
+			PL_BTS2 = grid5[index1, :PL_2]
+			PL_BTS3 = grid5[index1, :PL_3]
+			PL_BTS4 = grid5[index1, :PL_4]
+			PL_BTS5 = grid5[index1, :PL_5]
+			PL_BTS6 = grid5[index1, :PL_6]
+
+			for i in range_i5
+				for j in range_j5
+
+					index = ((i - 1) * (range_j[end])) + j
+
+					if(grid5[index, :Flag] == false)
+            #println("A");
+          	grid5[index, :PL_1] = (PL_BTS1 + grid5[index, :PL_1])/2
+						grid5[index, :PL_2] = (PL_BTS2 + grid5[index, :PL_2])/2
+						grid5[index, :PL_3] = (PL_BTS3 + grid5[index, :PL_3])/2
+						grid5[index, :PL_4] = (PL_BTS4 + grid5[index, :PL_4])/2
+						grid5[index, :PL_5] = (PL_BTS5 + grid5[index, :PL_5])/2
+						grid5[index, :PL_6] = (PL_BTS6 + grid5[index, :PL_6])/2
+					end
+
+				end
+
+			end
+
+		end
+
+	end
+  delete!(grid5, :Flag);
+	writetable(string("grid",name,"_ij.csv"), grid5, separator = ';');
+
+end
+
 #=
 minGrid = readtable("test_pl.csv", separator = ',')
 srand(1)
 minGrid[:sort] = 0.0
 for row in eachrow(minGrid)
-	row[:sort] = rand()
+row[:sort] = rand()
 end
 minGrid = sort(minGrid, cols=[:sort])
 delete!(minGrid,:sort)
 writetable("test_pl.csv", minGrid,separator=',')
 =#
 #println(head(grid))
+#=
+g1  g2  g3  grid_T  erro tempo
+50	20	10	train	   99	   116-----------configuração com menor tempo dentre as configurações com o menor erro
+50	20	10	test    120    30------------s
+75	20	10	train	  102	   64------------configuração com o menor erro dentre as configurações com menores tempo
+75	20	10	test	  120	   16------------
+=#
+search = readtable("search.csv", separator =';',header = false)
+search[:error] = 0.0
 
-minGrid = readtable("train_pl.csv", separator = ',')
-#println(num_i, num_j)
-#println(nrow(grid))
-delete!(minGrid, (3:8));
+for row1 in eachrow(search)
 
-X = [0,0];
-grid50 = readtable("grid50.csv", separator = ';');
-num_i = maximum(convert(Array, grid50[:i]))#X[1];
-num_j = maximum(convert(Array, grid50[:j]))#X[2];
+  map1 = row1[:x1];
+  map2 = row1[:x2];
+  map3 = row1[:x3];
 
-#=grid10 = createGRID(10,X);
-grid5 = createGRID(5,X);
+  minGrid = readtable(string(row1[:x4],"_pl.csv"), separator = ',')
+  #println(num_i, num_j)
+  #println(nrow(grid))
+  delete!(minGrid, (3:8));
 
-writetable("grid10.csv", grid10,separator=';')
-writetable("grid5.csv", grid5,separator=';')=#
+  grid50 = readtable(string("grid",map1,".csv"), separator = ';');
+  num_i = maximum(convert(Array, grid50[:i]))#X[1];
+  num_j = maximum(convert(Array, grid50[:j]))#X[2];
 
-grid10 = readtable("grid10.csv", separator = ';');
-grid5 = readtable("grid5.csv", separator = ';');
-#grid1 = createGRID(1,X);
+  #=grid10 = createGRID(10,X);
+  grid5 = createGRID(5,X);
 
-range_i = 1:(num_i);
-range_j = 1:(num_j);
-range_col = 1:10;
-#println(nrow(grid))
-#@time grid50 = filterGrid(grid50,range_i,range_j)
-#println(head(grid50))#minGrid[:SqEuclidean] = (0,0);
-#println(head(grid10))
-#println(head(grid5))
-#println(nrow(grid))
-#minGrid = head(minGrid , 1);
+  writetable("grid10.csv", grid10,separator=';')
+  writetable("grid5.csv", grid5,separator=';')=#
 
-minGrid[:SqEuclidean1] = (0,0)
-minGrid[:SqEuclidean2] = (0,0)
-minGrid[:SqEuclidean3] = (0,0)#=
-minGrid[:SqEuclidean4] = (0,0)=#
-minGrid[:latM] = 0.0
-minGrid[:longM] = 0.0
-minGrid[:distance] = 0.0
+  grid10 = readtable(string("grid",map2,".csv"), separator = ';');
+  grid5 = readtable(string("grid",map3,".csv"), separator = ';');
+  #grid1 = createGRID(1,X);
 
-divArea = 8
+  range_i = 1:(num_i);
+  range_j = 1:(num_j);
+  range_col = 1:10;
+  #println(nrow(grid))
+  #@time grid50 = filterGrid(grid50,range_i,range_j)
+  #println(head(grid50))#minGrid[:SqEuclidean] = (0,0);
+  #println(head(grid10))
+  #println(head(grid5))
+  #println(nrow(grid))
+  #minGrid = head(minGrid , 1);
 
-aux_i10 = divInteiro((range_i[end]+1)-range_i[1],divArea*2)
-aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
+  minGrid[:SqEuclidean1] = (0,0)
+  minGrid[:SqEuclidean2] = (0,0)
+  minGrid[:SqEuclidean3] = (0,0)#=
+  minGrid[:SqEuclidean4] = (0,0)=#
+  minGrid[:latM] = 0.0
+  minGrid[:longM] = 0.0
+  minGrid[:distance] = 0.0
 
-@time for row in eachrow(minGrid)
-	#search in 50 meters
-    df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
-    row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, grid50);
-  #--------------------------- search in 10 meters
-    range_i = mapGrid(50,10,row[:SqEuclidean1][1]-aux_i10) : mapGrid(50,10,row[:SqEuclidean1][1]+aux_i10)
-    range_j = mapGrid(50,10,row[:SqEuclidean1][2]-aux_j10) : mapGrid(50,10,row[:SqEuclidean1][2]+aux_j10)
-    gridAux = filterGrid(grid10,range_i,range_j)
-    row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
-	#--------------------------- search in 5 meters
-  	aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
-  	aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
-  	range_i = mapGrid(10,5,row[:SqEuclidean2][1]-aux_i5) : mapGrid(10,5,row[:SqEuclidean2][1]+aux_i5)
-    range_j = mapGrid(10,5,row[:SqEuclidean2][2]-aux_j5) : mapGrid(10,5,row[:SqEuclidean2][2]+aux_j5)
-    gridAux = filterGrid(grid5,range_i,range_j)
-    row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(CorrDist(), df_1, gridAux);
+  divArea = 8
+
+  aux_i10 = divInteiro((range_i[end]+1)-range_i[1],divArea*2)
+  aux_j10 = divInteiro((range_j[end]+1)-range_j[1],divArea*2)
+
+  @time for row in eachrow(minGrid)
+  	#search in 50 meters
+      df_1 = [row[:PLBTS1] row[:PLBTS2] row[:PLBTS3] row[:PLBTS4] row[:PLBTS5] row[:PLBTS6]];
+      row[:SqEuclidean1], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, grid50);
+    #--------------------------- search in 10 meters
+    if(map2 != 0)
+      range_j = mapGrid(map1,map2,row[:SqEuclidean1][2]-aux_j10) : mapGrid(map1,map2,row[:SqEuclidean1][2]+aux_j10)
+      range_i = mapGrid(map1,map2,row[:SqEuclidean1][1]-aux_i10) : mapGrid(map1,map2,row[:SqEuclidean1][1]+aux_i10)
+      gridAux = filterGrid(grid10,range_i,range_j)
+      row[:SqEuclidean2], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
+    end
+  	#--------------------------- search in 5 meters
+    if(map3 != 0)
+        aux_i5 = divInteiro((range_i[end]+1)-range_i[1],divArea)
+      	aux_j5 = divInteiro((range_j[end]+1)-range_j[1],divArea)
+      	range_i = mapGrid(map2,map3,row[:SqEuclidean2][1]-aux_i5) : mapGrid(map2,map3,row[:SqEuclidean2][1]+aux_i5)
+        range_j = mapGrid(map2,map3,row[:SqEuclidean2][2]-aux_j5) : mapGrid(map2,map3,row[:SqEuclidean2][2]+aux_j5)
+        gridAux = filterGrid(grid5,range_i,range_j)
+        row[:SqEuclidean3], row[:longM], row[:latM] = minimum_distance(SqEuclidean(), df_1, gridAux);
+    end
     row[:distance] = distanceInKm(row[:latM], row[:longM], row[:lat], row[:lon]);
 
+  end
+  row1[:error] = mean(minGrid[:distance])
+  println(row1[:error])
+  #=
+  #---------------------- COMENTA AQUI PARA TIRAR O "APRIMORAMENTO" --------------------
+  global minGrid2 = @byrow! minGrid begin
+       @newcol Point_i::Array{Int64}
+       @newcol Point_j::Array{Int64}
+       :Point_i = :SqEuclidean3[1]
+       :Point_j = :SqEuclidean3[2]
+  end
+
+  #writetable("minGrid_ij.csv", minGrid2, separator = ';');
+  vinici(minGrid2, 5, 60, grid5, row1[:x3]);=#
+  #---------------------- ATE AQUI --------------------------------------------------
 
 end
-println(head(minGrid))
-println(mean(minGrid[:distance]))
+    #println(head(minGrid))
+
+
 #
 #para deixar mais rapido, tentar verificar pontos próximos para não ter que fazer o grid toda iteração
+
+# Separando tupla SqEuclidean3 em duas colunas diferentes

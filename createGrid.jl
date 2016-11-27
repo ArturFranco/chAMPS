@@ -10,8 +10,8 @@ init_lat = minimum(convert(Array, med[:lat]));
 end_lat = maximum(convert(Array, med[:lat]));
 
 #GRID Precition
-rH = 50; #meters
-
+rH = 15; #meters
+tamanhoGrid = rH;
 #create GRID
 grid = DataFrame(i = [], j = [], lon = [], lat = []);
 
@@ -29,7 +29,7 @@ new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
 #push!(grid, [num_i, num_j, new_lon, new_lat]);
 
 
-@time while new_lat <= end_lat 
+@time while new_lat <= end_lat
     lat = new_lat;
     while new_lon <= end_lon
         push!(grid, [num_i, aux_j, new_lon, new_lat]);
@@ -37,7 +37,7 @@ new_lon = init_lon + ((rH/2) / r_earth) * (180 / pi) / cos(new_lat * pi/180);
         new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
         aux_j = aux_j + 1;
         num_j = aux_j;
-        
+
     end
 
     new_lat = lat + (rH / r_earth) * (180 / pi);
@@ -52,7 +52,7 @@ while new_lon <= end_lon
     new_lon = lon + (rH / r_earth) * (180 / pi) / cos(lat * pi/180);
     aux_j = aux_j + 1;
     num_j = aux_j;
-    
+
 end
 
 num_i = num_i;
@@ -62,11 +62,30 @@ num_j = num_j - 1;
 db_erbs = readtable("erbs.csv", separator = ',');
 
 #### Lee Model ####
-lee = LeeModel()
+#=lee = LeeModel()
 lee.freq = 1800                   # MHz
 lee.txH = 50                      # Height of the cell site
 lee.rxH = 1.5                     # Height of mobile station
 lee.leeArea = LeeArea.NewYorkCity # (determined empirically)
+=#
+
+#=oh = OkumuraHataModel()
+oh.freq = 1800                  # MHz
+oh.txH = 50                     # Height of the cell site (meters)
+oh.rxH = 1.5                    # Height of mobile station (meters)
+oh.areaKind = AreaKind.Urban    # Area type (Urban, SubUrban or Open)
+oh.cityKind = CityKind.Medium   # City type (Small, Medium or Large)
+oh.checkFreqRange = false=#
+
+
+
+sui = SuiModel()
+sui.freq = 1900         # MHz
+sui.txH = 40            # Height of the cell site (15~40m)
+sui.rxH = 1.5               # Height of mobile station
+sui.shadowFading = 9.0  # Shadow fading (8.2~10.6dB)
+sui.terrainKind = TerrainKind.A
+
 
 lat1 = db_erbs[1,:lat];
 lon1 = db_erbs[1,:lon];
@@ -93,12 +112,12 @@ grid = @byrow! grid begin
     @newcol PL_4::Array{Float64}
     @newcol PL_5::Array{Float64}
     @newcol PL_6::Array{Float64}
-    :PL_1 = pathloss(lee, distanceInKm(:lat,:lon, lat1, lon1))
-    :PL_2 = pathloss(lee, distanceInKm(:lat,:lon, lat2, lon2))
-    :PL_3 = pathloss(lee, distanceInKm(:lat,:lon, lat3, lon3))
-    :PL_4 = pathloss(lee, distanceInKm(:lat,:lon, lat4, lon4))
-    :PL_5 = pathloss(lee, distanceInKm(:lat,:lon, lat5, lon5))
-    :PL_6 = pathloss(lee, distanceInKm(:lat,:lon, lat6, lon6))
+    :PL_1 = pathloss(sui, distanceInKm(:lat,:lon, lat1, lon1))
+    :PL_2 = pathloss(sui, distanceInKm(:lat,:lon, lat2, lon2))
+    :PL_3 = pathloss(sui, distanceInKm(:lat,:lon, lat3, lon3))
+    :PL_4 = pathloss(sui, distanceInKm(:lat,:lon, lat4, lon4))
+    :PL_5 = pathloss(sui, distanceInKm(:lat,:lon, lat5, lon5))
+    :PL_6 = pathloss(sui, distanceInKm(:lat,:lon, lat6, lon6))
 end;
 
 ################################################################
@@ -117,7 +136,7 @@ train = readtable("train_pl.csv", separator = ',');
     j = 1;
 
     new_lat = init_lat + (rH / r_earth) * (180 / pi);
-   
+
     while new_lat < train_lat
         i = i + 1;
         new_lat = new_lat + (rH / r_earth) * (180 / pi);
@@ -128,14 +147,14 @@ train = readtable("train_pl.csv", separator = ',');
 
     while new_lon < train_lon
         j = j + 1;
- 
+
         new_lon = new_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
     end
 
     index = ((i - 1) * (num_j)) + j;
 
     grid_row = grid_2[index , :];
-    
+
     count = count_array[index, 1];
     grid_row[:PL_1] = (grid_row[:PL_1]*count + row[:PLBTS1]) / (count + 1);
     count_array[index, 1] = count + 1;
@@ -171,7 +190,7 @@ for row in eachrow(train)
     j = 1;
 
     new_lat = init_lat + (rH / r_earth) * (180 / pi);
-   
+
     while new_lat < train_lat
         i = i + 1;
         new_lat = new_lat + (rH / r_earth) * (180 / pi);
@@ -182,14 +201,14 @@ for row in eachrow(train)
 
     while new_lon < train_lon
         j = j + 1;
- 
+
         new_lon = new_lon + (rH / r_earth) * (180 / pi) / cos(new_lat * pi/180);
     end
 
     index = ((i - 1) * (num_j)) + j;
 
     grid_row = grid_2[index , :];
-    
+
     count = count_array[index, 1];
     grid_row[:PL_1] = (grid_row[:PL_1]*count + row[:PLBTS1]) / (count + 1);
     count_array[index, 1] = count + 1;
@@ -215,9 +234,7 @@ for row in eachrow(train)
     count_array[index, 6] = count + 1;
 
     grid_2[index, :] = grid_row;
-    
+
 end
 
-writetable("grid50.csv", grid_2,separator=';')
-
-
+writetable(string("grid",tamanhoGrid,".csv"), grid_2,separator=';')
