@@ -80,9 +80,26 @@ end_lat = -8.060549;
 
 ################################################################
 function mapGrid(N,n,x)
+  return ((N/n)*(2*x -1) + 1)/2
+end
 
-return ((N/n)*(2*x -1) + 1)/2
+function pathLossMedido(db)
+    table = @byrow! db begin
+        @newcol PLBTS1::Array{Float64}
+        @newcol PLBTS2::Array{Float64}
+        @newcol PLBTS3::Array{Float64}
+        @newcol PLBTS4::Array{Float64}
+        @newcol PLBTS5::Array{Float64}
+        @newcol PLBTS6::Array{Float64}
 
+        :PLBTS1 = db_erbs[1,7] - :RSSI_1
+        :PLBTS2 = db_erbs[2,7] - :RSSI_2
+        :PLBTS3 = db_erbs[3,7] - :RSSI_3
+        :PLBTS4 = db_erbs[4,7] - :RSSI_4
+        :PLBTS5 = db_erbs[5,7] - :RSSI_5
+        :PLBTS6 = db_erbs[6,7] - :RSSI_6
+    end
+    return table
 end
 
 function vinici(minGrid_ij, range, distMeters, grid5,name)
@@ -217,6 +234,11 @@ for row1 in eachrow(search)
   map3 = row1[:x3];
 
   minGrid = readtable(string(row1[:x4],"_pl.csv"), separator = ',')
+  #minGrid = readtable("testLoc.csv", separator = ',')
+
+  #ADD PATHLOSS NO ARQUIVO DO PROF
+  #minGrid = pathLossMedido(minGrid);
+
   #println(num_i, num_j)
   #println(nrow(grid))
   delete!(minGrid, (3:8));

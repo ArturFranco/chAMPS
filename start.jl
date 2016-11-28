@@ -124,7 +124,6 @@ end
 
 #### Free Space Model ####
 
-<<<<<<< HEAD
 #=db_med = pathLossMedido(db_med)
 writetable("med_pl", db_med, separator=',')
 ||||||| merged common ancestors
@@ -252,9 +251,3 @@ table = @byrow! errorModels2 begin
     end
 <<<<<<< HEAD
 =#
-||||||| merged common ancestors
-
-=#
-=======
-=#
->>>>>>> c3027b41a06b6f04f5dbf9dfe3002e5bebabbb13
