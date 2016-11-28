@@ -232,7 +232,7 @@ for row1 in eachrow(search)
   writetable("grid5.csv", grid5,separator=';')=#
 
   grid10 = readtable(string("grid",map2,".csv"), separator = ';');
-  grid5 = readtable(string("grid",map3,".csv"), separator = ';');
+  global grid5 = readtable(string("grid",map3,".csv"), separator = ';');
   #grid1 = createGRID(1,X);
 
   range_i = 1:(num_i);
@@ -285,7 +285,7 @@ for row1 in eachrow(search)
   row1[:error] = mean(minGrid[:distance])
   println(row1[:error])
   #=
-  #---------------------- COMENTA AQUI PARA TIRAR O "APRIMORAMENTO" --------------------
+  #---------------------- COMENTA AQUI PARA TIRAR O APRIMORAMENTO --------------------
   global minGrid2 = @byrow! minGrid begin
        @newcol Point_i::Array{Int64}
        @newcol Point_j::Array{Int64}
@@ -294,9 +294,9 @@ for row1 in eachrow(search)
   end
 
   #writetable("minGrid_ij.csv", minGrid2, separator = ';');
-  vinici(minGrid2, 5, 60, grid5, row1[:x3]);=#
+  vinici(minGrid2, 4, 50, grid5, row1[:x3]);
   #---------------------- ATE AQUI --------------------------------------------------
-
+=#
 end
     #println(head(minGrid))
 

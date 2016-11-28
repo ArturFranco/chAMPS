@@ -10,7 +10,7 @@ init_lat = minimum(convert(Array, med[:lat]));
 end_lat = maximum(convert(Array, med[:lat]));
 
 #GRID Precition
-rH = 15; #meters
+rH = 10; #meters
 tamanhoGrid = rH;
 #create GRID
 grid = DataFrame(i = [], j = [], lon = [], lat = []);
